@@ -96,7 +96,7 @@ def Get_Driver():
 
         #Driver:
         service = Service(executable_path=ChromeDriverManager().install())
-        driver = webdriver.Chrome(options=chrome_options,service=service)
+        driver = webdriver.Chrome(service,options=chrome_options)
         #driver = webdriver.Edge(EdgeChromiumDriverManager().install())
     except Exception as err:
         print("O seguinte erro ocorreu:\n",err)
