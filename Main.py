@@ -6,6 +6,10 @@ from selenium.webdriver.firefox.options import Options as MozilaOptions
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
+from webdriver_manager.chrome import ChromeDriverManager
+from webdriver_manager.microsoft import EdgeChromiumDriverManager
+from msedge.selenium_tools import EdgeOptions as EdgeOptions2
+from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.support import expected_conditions as EC
 from bs4 import BeautifulSoup as bs
 from html import *
@@ -13,13 +17,14 @@ from time import sleep
 import pandas as pd
 import matplotlib.pyplot as plt
 from datetime import *
+import os
 
 
 #Constantes:
 url_site=r"https://oilxplorer.lexsis.com.br/"
 user_login="loginengenharia"
 password_login="login123"
-File_Exit='oilexplorer.csv'
+File_Exit='oilexplorer_geral.xlsx'
 
 
 # Auxiliary functions:
@@ -80,13 +85,33 @@ def Close_Alerts(driver_object):
     print("Erro ao fechar o 'Alert':\n",msg_err)
 
 #Chrome Initialize:
-chrome_options = webdriver.ChromeOptions()
-chrome_options.add_argument('--headless')
-chrome_options.add_argument('--no-sandbox')
-chrome_options.add_argument('--disable-dev-shm-usage')
-driver = webdriver.Chrome(options=chrome_options)
+def Get_Driver():
+
+    try:    
+        #Options:
+        chrome_options = webdriver.ChromeOptions()
+        chrome_options.add_argument('--headless')
+        chrome_options.add_argument('--no-sandbox')
+        chrome_options.add_argument('--disable-dev-shm-usage')
+
+        #Driver:
+        service = Service(executable_path=ChromeDriverManager().install())
+        driver = webdriver.Chrome(options=chrome_options,service=service)
+        #driver = webdriver.Edge(EdgeChromiumDriverManager().install())
+    except Exception as err:
+        print("O seguinte erro ocorreu:\n",err)
+        edge_options=EdgeOptions2()
+        edge_options.use_chromium = True
+        #edge_options.add_argument('')
+        edge_options.add_argument("disable-gpu")
+        driver = webdriver.Edge(executable_path=EdgeChromiumDriverManager().install())
+        
+  
+    driver.implicitly_wait(10)
+    return driver
 
 #Overview:
+driver=Get_Driver()
 Go(driver)
 Login(driver)
 
@@ -115,15 +140,15 @@ for div in div_row:
       values.append(round(float(col.text.strip().split('\n')[0]),1))
       percents.append(round(100*float(col.text.strip().split('\n')[0])/total_anual,3))
 
+driver.quit()
 
 df_overview=pd.DataFrame({'Status':columns,'Quantidade':values,'Percents':percents})
 print(df_overview,'\n\n')
-chart=df_overview.plot(kind='barh',x='Status',y='Quantidade',color='blue',title='Overview das analises')
-chart.bar_label(chart.containers[0])
-plt.show()
 
-Quit(driver)
 
+
+
+"""
 # History:
 
 Go(driver)
@@ -325,3 +350,4 @@ except Exception as err:
   print(err)
 
 
+"""
